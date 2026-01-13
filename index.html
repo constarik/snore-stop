@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Snore Stop</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .monitor {
+            width: 100%;
+            max-width: 350px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .level-container {
+            margin-bottom: 25px;
+        }
+        
+        .level-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #aaa;
+        }
+        
+        .level-bar {
+            height: 30px;
+            background: #2a2a4a;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .level-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #4CAF50, #FFC107, #f44336);
+            border-radius: 15px;
+            transition: width 0.1s;
+        }
+        
+        .threshold-marker {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: #fff;
+            border-radius: 2px;
+        }
+        
+        .setting {
+            margin-bottom: 20px;
+        }
+        
+        .setting-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .setting-label {
+            color: #aaa;
+        }
+        
+        .setting-value {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #2a2a4a;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+        
+        .btn {
+            width: 100%;
+            max-width: 350px;
+            padding: 18px;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-start {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+        
+        .btn-stop {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            text-align: center;
+            width: 100%;
+            max-width: 350px;
+        }
+        
+        .status-text {
+            font-size: 14px;
+            color: #aaa;
+        }
+        
+        .status-text.alert {
+            color: #FFC107;
+            font-weight: bold;
+        }
+        
+        .triggers {
+            margin-top: 10px;
+            font-size: 24px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>🛏️ Snore Stop</h1>
+    <p class="subtitle">Антихрап с эскалацией</p>
+    
+    <div class="monitor">
+        <div class="level-container">
+            <div class="level-label">
+                <span>Уровень шума</span>
+                <span id="currentLevel">0%</span>
+            </div>
+            <div class="level-bar">
+                <div class="level-fill" id="levelFill"></div>
+                <div class="threshold-marker" id="thresholdMarker"></div>
+            </div>
+        </div>
+        
+        <div class="setting">
+            <div class="setting-header">
+                <span class="setting-label">Порог срабатывания</span>
+                <span class="setting-value" id="thresholdValue">30%</span>
+            </div>
+            <input type="range" id="threshold" min="5" max="80" value="30">
+        </div>
+        
+        <div class="setting">
+            <div class="setting-header">
+                <span class="setting-label">Таймаут проверки</span>
+                <span class="setting-value" id="timeoutValue">5 сек</span>
+            </div>
+            <input type="range" id="timeout" min="2" max="15" value="5">
+        </div>
+        
+        <div class="setting">
+            <div class="setting-header">
+                <span class="setting-label">Начальная громкость</span>
+                <span class="setting-value" id="volumeValue">30%</span>
+            </div>
+            <input type="range" id="volume" min="10" max="100" value="30">
+        </div>
+    </div>
+    
+    <button class="btn btn-start" id="startBtn">▶ СТАРТ</button>
+    <button class="btn btn-stop hidden" id="stopBtn">⏹ СТОП</button>
+    
+    <div class="status">
+        <div class="status-text" id="statusText">Нажмите СТАРТ для начала мониторинга</div>
+        <div class="triggers" id="triggers"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
